@@ -21,7 +21,7 @@ import { JwtStrategy } from './modules/auth/jwt.strategy'
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
-      ssl: true,
+      // ssl: true,
       synchronize: true,
       entities: [User, Film],
       // dropSchema: true,
