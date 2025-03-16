@@ -27,6 +27,7 @@ export class FilmsService {
    */
   async sync(): Promise<void> {
     const movies: Film[] = await this.fetchAll<Film>(`${process.env.STARWARS_API}/films`)
+
     for (const movie of movies) {
       let film = await this.filmRepository.findOne({ where: { episode_id: movie.episode_id } })
       if (!film) {

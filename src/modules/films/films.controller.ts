@@ -14,19 +14,23 @@ import {
 } from '@nestjs/common'
 import { FilmsService } from './films.service'
 import { Film } from './entities/film.entity'
-import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger'
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger'
 import { UpdateFilmDto } from './dto/update-film.dto'
 import { CreateFilmDto } from './dto/create-film.dto'
 import { log } from 'node:console'
 import { AuthGuard } from '@nestjs/passport'
-import { RolesGuard } from '@/guards/roles.guard'
-import { Roles } from '@/guards/roles.decorator'
+
+import { Roles } from '../../guards/roles.decorator'
+import { RolesGuard } from '../../guards/roles.guard'
 
 @Controller('films')
 export class FilmsController {
   constructor(private readonly filmsService: FilmsService) {}
 
   @Post('sync')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Administrador', 'Administrador')
   @ApiOperation({ summary: 'Sync films from api with our Database' })
   @HttpCode(HttpStatus.OK)
   @ApiResponse({
@@ -44,7 +48,9 @@ export class FilmsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @ApiBearerAuth()
+  @Roles('Administrador', 'Administrador')
   @ApiOperation({ summary: 'Create a film' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -77,6 +83,7 @@ export class FilmsController {
   }
 
   @Get()
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'))
   @ApiOperation({ summary: 'Get all the films ' })
   @ApiResponse({
@@ -115,14 +122,14 @@ export class FilmsController {
       },
     },
   })
-  async getAll(@Req() req: Request): Promise<Film[]> {
-    console.log('Headers recibidos:', req.headers) // Debug
+  async getAll(): Promise<Film[]> {
     return this.filmsService.getAll()
   }
 
   @Get(':id')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('Administrador', 'Administrador')
+  @Roles('Regular', 'Regular')
   @ApiOperation({ summary: 'Get a film by ID' })
   @ApiParam({ name: '1', description: 'Film id' })
   @ApiResponse({
@@ -151,6 +158,9 @@ export class FilmsController {
   }
 
   @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('Administrador', 'Administrador')
   @ApiParam({ name: 'id', description: 'Film id' })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -173,16 +183,14 @@ export class FilmsController {
       },
     },
   })
-  async update(
-    @Req() req: Request,
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateFilmDto: UpdateFilmDto
-  ): Promise<Film> {
-    console.log('Request Headers:', req.headers)
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() updateFilmDto: UpdateFilmDto): Promise<Film> {
     return this.filmsService.update(id, updateFilmDto)
   }
 
   @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('Administrador', 'Administrador')
   @ApiParam({ name: 'id', description: 'Film id' })
   @ApiResponse({
     status: HttpStatus.OK,
